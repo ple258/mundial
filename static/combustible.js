@@ -54,6 +54,18 @@ const MODELS_DB = {
     cx5: { name: "CX-5 SUV (2.0L - 2.5L)", start: 2012, end: 2026, tank: 14.8, economy: 34 },
     cx30: { name: "CX-3 / CX-30 (2.0L)", start: 2015, end: 2026, tank: 12.7, economy: 38 }
   },
+  ford: {
+    ecosport: { name: "EcoSport SUV (1.5L - 2.0L)", start: 2006, end: 2023, tank: 13.7, economy: 36 },
+    fiesta: { name: "Fiesta Compacto (1.6L)", start: 2006, end: 2019, tank: 12.0, economy: 42 },
+    focus: { name: "Focus Sedán/Hatchback (2.0L)", start: 2006, end: 2018, tank: 14.5, economy: 38 },
+    escape: { name: "Escape SUV (1.5T - 2.0L)", start: 2006, end: 2026, tank: 15.0, economy: 32 },
+    explorer: { name: "Explorer SUV Grande (2.3T - 3.5L V6)", start: 2006, end: 2026, tank: 18.6, economy: 25 },
+    edge: { name: "Edge SUV (2.0T - 3.5L V6)", start: 2008, end: 2024, tank: 18.0, economy: 28 },
+    territory: { name: "Territory SUV (1.5T)", start: 2020, end: 2026, tank: 13.7, economy: 34 },
+    ranger: { name: "Ranger Camioneta (2.5L Gasolina)", start: 2006, end: 2026, tank: 21.1, economy: 26 },
+    f150: { name: "F-150 PickUp (3.5L V6 EcoBoost / V8)", start: 2006, end: 2026, tank: 26.0, economy: 20 },
+    mustang: { name: "Mustang Coupe (2.3T - 5.0L V8)", start: 2014, end: 2026, tank: 16.0, economy: 24 }
+  },
   shineray: {
     xy150: { name: "Shineray XY150 (Motocicleta)", start: 2005, end: 2026, tank: 3.2, economy: 110 },
     moto250: { name: "Moto Motor 250cc (Genérica)", start: 2005, end: 2026, tank: 3.7, economy: 90 }
