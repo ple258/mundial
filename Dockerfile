@@ -27,5 +27,5 @@ COPY . .
 # Expose the port the app runs on
 EXPOSE 8000
 
-# Command to run the application using uvicorn
-CMD uvicorn app:app --host 0.0.0.0 --port $PORT
+# Command to run the application using uvicorn (wrapped in sh -c for variable expansion)
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT}"]
