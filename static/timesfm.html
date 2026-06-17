@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interfaz gráfica para TimesFM (Time Series Foundation Model) de Google Research. Visualiza y predice series de tiempo en tiempo real.">
+  <title>TimesFM Forecaster | Panel de Control</title>
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Chart.js (via CDN for local execution) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-logo">
+      <div class="logo-icon"></div>
+      <div class="logo-text">
+        <h1>TimesFM <span>Forecaster</span></h1>
+        <p class="subtitle">Google Research Time Series Foundation Model</p>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="header-nav">
+      <a href="/" class="nav-link">🚗 Comparador de Gasolina</a>
+      <a href="/timesfm.html" class="nav-link active-link">📈 Pronosticador TimesFM</a>
+      <a href="/soccer.html" class="nav-link">🏆 Mundial de Fútbol</a>
+    </nav>
+    
+    <!-- Status Indicator Panel -->
+    <div class="status-bar" id="engine-status-bar" aria-live="polite">
+      <span class="status-dot pulse-gray"></span>
+      <span class="status-text">Conectando con el servidor...</span>
+      <button type="button" class="btn-config-dialog" id="open-config-btn" title="Configurar Modelo">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>Ajustes</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="app-layout">
+    
+    <!-- Sidebar Control Panel -->
+    <aside class="sidebar-panel">
+      
+      <!-- Dataset Selector Card -->
+      <section class="control-card">
+        <h2>1. Datos de Entrada</h2>
+        
+        <!-- Tabs for choosing Upload vs Presets vs Finance -->
+        <div class="tabs-control">
+          <button type="button" class="tab-btn active" id="tab-presets-btn">Ejemplos</button>
+          <button type="button" class="tab-btn" id="tab-finance-btn">Mercado</button>
+          <button type="button" class="tab-btn" id="tab-upload-btn">Subir Archivo</button>
+        </div>
+        
+        <!-- Preset Series Area -->
+        <div class="tab-content active" id="pane-presets">
+          <label for="dataset-preset">Selecciona un conjunto de ejemplo:</label>
+          <select id="dataset-preset" name="dataset_preset">
+            <option value="airline" selected>Pasajeros de Aerolíneas (Mensual - Tendencia + Estacionalidad)</option>
+            <option value="stock">Precio de Acción de Tecnología (Diario - Camino Aleatorio + Deriva)</option>
+            <option value="temp">Temperatura en la Ciudad (Horario - Estacionalidad de 24h)</option>
+            <option value="sine">Onda Senoidal Pura (Teórico - Oscilación Regular)</option>
+          </select>
+          <button type="button" class="btn-primary" id="load-preset-btn">Cargar Ejemplo</button>
+        </div>
+
+        <!-- Financial Market Ticker Area -->
+        <div class="tab-content" id="pane-finance">
+          <div class="category-select-group">
+            <span class="category-label">Tipo de Activo:</span>
+            <div class="category-radios">
+              <label class="radio-btn">
+                <input type="radio" name="finance-category" value="crypto" checked>
+                <span>Cripto</span>
+              </label>
+              <label class="radio-btn">
+                <input type="radio" name="finance-category" value="stock">
+                <span>Acciones</span>
+              </label>
+              <label class="radio-btn">
+                <input type="radio" name="finance-category" value="commodity">
+                <span>Commodities</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin-top: 0.75rem;">
+            <label for="ticker-input">Ticker del Activo:</label>
+            <input type="text" id="ticker-input" name="ticker_input" placeholder="ej. BTC-USD" list="ticker-suggestions-list" autocomplete="off">
+            <datalist id="ticker-suggestions-list">
+              <option value="BTC-USD">Bitcoin (USD)</option>
+              <option value="ETH-USD">Ethereum (USD)</option>
+              <option value="SOL-USD">Solana (USD)</option>
+              <option value="BNB-USD">Binance Coin (USD)</option>
+            </datalist>
+            <span class="help-text">Ingresa símbolos estándar de Yahoo Finance (ej. AAPL, BTC-USD, GC=F).</span>
+          </div>
+          <button type="button" class="btn-primary" id="fetch-ticker-btn">Descargar y Cargar</button>
+        </div>
+        
+        <!-- Custom Upload Area -->
+        <div class="tab-content" id="pane-upload">
+          <div class="drag-drop-zone" id="drag-drop-area">
+            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p>Arrastra tu archivo CSV o Excel aquí</p>
+            <span>o haz clic para explorar</span>
+            <input type="file" id="file-input" accept=".csv, .xls, .xlsx" class="visually-hidden">
+          </div>
+          <div class="file-preview-info" id="file-info-container" style="display: none;">
+            <p class="file-name" id="preview-file-name"></p>
+            <div class="file-stats">
+              <span id="preview-file-len">-- datos</span>
+              <span id="preview-file-freq">Frecuencia: --</span>
+            </div>
+            <div class="column-mappers">
+              <p>Columnas detectadas:</p>
+              <span>Fecha: <strong id="preview-col-date">--</strong></span>
+              <span>Valor: <strong id="preview-col-val">--</strong></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Model Parameters Card -->
+      <section class="control-card">
+        <h2>2. Parámetros del Pronóstico</h2>
+        <form id="forecast-params-form">
+          <div class="param-group">
+            <div class="param-header">
+              <label for="param-context-len">Longitud del Contexto (Puntos Históricos)</label>
+              <span class="param-value" id="val-context-len">512</span>
+            </div>
+            <input type="range" id="param-context-len" name="context_len" min="10" max="1000" value="512">
+            <span class="help-text">Cuántos puntos pasados analizará el modelo para entender el patrón.</span>
+          </div>
+
+          <div class="param-group">
+            <div class="param-header">
+              <label for="param-horizon-len">Horizonte de Predicción (Puntos a Futuro)</label>
+              <span class="param-value" id="val-horizon-len">128</span>
+            </div>
+            <input type="range" id="param-horizon-len" name="horizon_len" min="5" max="500" value="128">
+            <span class="help-text">Cuántos pasos en el futuro deseas predecir.</span>
+          </div>
+
+          <!-- Advanced Parameters Collapsible Accordion -->
+          <details class="advanced-params-details" name="params-accordion">
+            <summary>Parámetros Avanzados de Intervalo</summary>
+            <div class="details-content">
+              <fieldset class="quantiles-fieldset">
+                <legend>Bandas de Confianza (Cuantiles)</legend>
+                <div class="checkbox-grid">
+                  <label class="custom-checkbox">
+                    <input type="checkbox" name="quantile" value="0.1" checked>
+                    <span>10% / 90% (Recomendado)</span>
+                  </label>
+                  <label class="custom-checkbox">
+                    <input type="checkbox" name="quantile" value="0.2">
+                    <span>20% / 80%</span>
+                  </label>
+                  <label class="custom-checkbox">
+                    <input type="checkbox" name="quantile" value="0.3">
+                    <span>30% / 70%</span>
+                  </label>
+                  <label class="custom-checkbox">
+                    <input type="checkbox" name="quantile" value="0.4">
+                    <span>40% / 60%</span>
+                  </label>
+                </div>
+              </fieldset>
+              
+              <div class="param-group check-group">
+                <label class="custom-checkbox inline-checkbox">
+                  <input type="checkbox" id="param-force-sim" name="force_simulation">
+                  <span>Forzar modo simulación estadística</span>
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <button type="submit" class="btn-submit" id="forecast-submit-btn">Generar Pronóstico</button>
+        </form>
+      </section>
+      
+    </aside>
+
+    <!-- Main Visualizer Area -->
+    <div class="main-display">
+      
+      <!-- Chart Card -->
+      <section class="display-card chart-container-card">
+        <div class="card-header-actions">
+          <h2>Visualización de la Serie y Predicción</h2>
+          <div class="chart-actions">
+            <button type="button" class="btn-secondary" id="export-csv-btn" disabled>Exportar CSV</button>
+            <button type="button" class="btn-secondary" id="export-png-btn" disabled>Guardar Gráfico</button>
+          </div>
+        </div>
+        
+        <div class="chart-wrapper">
+          <canvas id="forecast-chart"></canvas>
+          <div class="loading-overlay" id="loading-spinner">
+            <div class="spinner"></div>
+            <p>El motor TimesFM está calculando el pronóstico...</p>
+          </div>
+          <div class="placeholder-overlay" id="chart-placeholder">
+            <svg viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"></path>
+              <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
+            </svg>
+            <p>Selecciona un conjunto de datos y haz clic en <strong>Generar Pronóstico</strong></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Analysis and Info Card -->
+      <section class="display-card metrics-card">
+        <h2>Análisis y Métricas de la Serie</h2>
+        <div class="metrics-grid">
+          
+          <div class="metric-box">
+            <span class="metric-label">Puntos Históricos</span>
+            <span class="metric-value" id="metric-history-len">--</span>
+          </div>
+          
+          <div class="metric-box">
+            <span class="metric-label">Media Histórica</span>
+            <span class="metric-value" id="metric-history-mean">--</span>
+          </div>
+
+          <div class="metric-box">
+            <span class="metric-label">Desviación Estándar</span>
+            <span class="metric-value" id="metric-history-std">--</span>
+          </div>
+
+          <div class="metric-box">
+            <span class="metric-label">Tendencia Detectada</span>
+            <span class="metric-value" id="metric-trend-type">--</span>
+          </div>
+          
+          <div class="metric-box">
+            <span class="metric-label">Picos Futuros (Pronóstico)</span>
+            <span class="metric-value highlight-positive" id="metric-forecast-peak">--</span>
+          </div>
+
+          <div class="metric-box">
+            <span class="metric-label">Valles Futuros (Pronóstico)</span>
+            <span class="metric-value highlight-negative" id="metric-forecast-trough">--</span>
+          </div>
+          
+        </div>
+      </section>
+      
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <p>TimesFM GUI Dashboard &bull; Desarrollado como interfaz amigable para Google Research TimesFM.</p>
+  </footer>
+
+  <!-- HTML Native Configuration Dialog -->
+  <dialog class="config-dialog" id="config-dialog">
+    <div class="dialog-header">
+      <h2>Configuración de TimesFM</h2>
+      <button type="button" class="btn-close" id="close-config-btn" aria-label="Cerrar">&times;</button>
+    </div>
+    
+    <!-- dialog method closes natively -->
+    <form method="dialog" id="config-model-form">
+      <div class="dialog-body">
+        <div class="dialog-alert" id="dialog-status-alert">
+          <p>Cargando información del servidor...</p>
+        </div>
+        
+        <fieldset class="config-fieldset">
+          <legend>Cargar Modelo desde Hugging Face</legend>
+          
+          <div class="form-group">
+            <label for="config-checkpoint">Checkpoint en Hugging Face:</label>
+            <input type="text" id="config-checkpoint" name="checkpoint_path" value="google/timesfm-1.0-200m" autocomplete="off" list="checkpoint-suggestions">
+            <datalist id="checkpoint-suggestions">
+              <option value="google/timesfm-1.0-200m">TimesFM 1.0 (200 Millones Parámetros - CPU/GPU)</option>
+              <option value="google/timesfm-2.5-200m">TimesFM 2.5 (200 Millones Parámetros - Más rápido, XReg)</option>
+            </datalist>
+            <span class="input-hint">El servidor descargará automáticamente los pesos si no están en caché.</span>
+          </div>
+          
+          <div class="form-group-row">
+            <div class="form-group">
+              <label for="config-backend">Backend de Ejecución:</label>
+              <select id="config-backend" name="backend">
+                <option value="cpu" selected>CPU (Estándar)</option>
+                <option value="gpu">GPU (Acelerar con CUDA/MPS)</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+        
+        <div class="installer-help-panel">
+          <h3>¿Cómo instalar el motor TimesFM localmente?</h3>
+          <p>Si el sistema indica que TimesFM no está instalado, ejecuta lo siguiente en tu terminal:</p>
+          <pre tabindex="0"><code>pip install timesfm[torch]</code></pre>
+          <p class="installer-note">Asegúrate de que estás en el entorno virtual activo (.venv) del proyecto.</p>
+        </div>
+      </div>
+      
+      <div class="dialog-footer">
+        <button type="button" class="btn-secondary" id="cancel-config-btn">Cancelar</button>
+        <button type="submit" class="btn-primary" id="save-config-btn" value="save">Cargar Modelo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Notification container for feedback -->
+  <div class="toast-container" id="toast-container" aria-live="assertive"></div>
+
+  <!-- Custom JS -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Módulo de predicción para partidos de fútbol internacional y el Mundial. Modelo de Regresión de Poisson basado en datos históricos desde 1872.">
+  <title>Mundial Forecaster | Predicción de Partidos</title>
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Chart.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-logo">
+      <div class="logo-icon">⚽</div>
+      <div class="logo-text">
+        <h1>Mundial <span>Predictor</span></h1>
+        <p class="subtitle">Modelo de Goles de Poisson (Dixon-Coles)</p>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="header-nav">
+      <a href="/" class="nav-link">🚗 Comparador de Gasolina</a>
+      <a href="/timesfm.html" class="nav-link">📈 Pronosticador TimesFM</a>
+      <a href="/soccer.html" class="nav-link active-link">🏆 Mundial de Fútbol</a>
+    </nav>
+    
+    <!-- Status Indicator Panel (Just aesthetic status for soccer) -->
+    <div class="status-bar" id="soccer-status-bar">
+      <span class="status-dot pulse-green"></span>
+      <span class="status-text">Base de datos de Fútbol Activa</span>
+    </div>
+  </header>
+
+  <main class="app-layout">
+    
+    <!-- Sidebar Control Panel -->
+    <aside class="sidebar-panel">
+      
+      <!-- Selection Card -->
+      <section class="control-card">
+        <h2>1. Seleccionar Equipos</h2>
+        <form id="soccer-predict-form">
+          <div class="form-group">
+            <label for="soccer-team-a">Selección Nacional A (Local):</label>
+            <select id="soccer-team-a" name="team_a" required>
+              <option value="" disabled selected>Cargando selecciones...</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="soccer-team-b">Selección Nacional B (Visitante):</label>
+            <select id="soccer-team-b" name="team_b" required>
+              <option value="" disabled selected>Cargando selecciones...</option>
+            </select>
+          </div>
+          
+          <div class="param-group check-group">
+          <label class="custom-checkbox">
+            <input type="checkbox" id="soccer-neutral" name="neutral" checked>
+            <span>Partido en Cancha Neutral (ej. Mundial)</span>
+          </label>
+        </div>
+
+        <!-- XGBoost ML Adjustment controls -->
+        <details class="advanced-details" style="margin-top: 1rem; border-top: 1px solid hsla(0, 0%, 100%, 0.08); padding-top: 0.75rem;">
+          <summary style="font-size: 0.85rem; color: var(--color-primary); cursor: pointer; font-weight: 600; margin-bottom: 0.75rem; user-select: none;">
+            ⚙️ Ajustes de Machine Learning (XGBoost)
+          </summary>
+          <div class="advanced-inputs-container" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label for="soccer-val-a" style="font-size: 0.75rem;">Valor Plantilla A (M€):</label>
+                <input type="number" id="soccer-val-a" name="market_value_a" value="100" min="10" max="1500" step="10" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;">
+              </div>
+              <div class="form-group">
+                <label for="soccer-val-b" style="font-size: 0.75rem;">Valor Plantilla B (M€):</label>
+                <input type="number" id="soccer-val-b" name="market_value_b" value="100" min="10" max="1500" step="10" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label for="soccer-inj-a" style="font-size: 0.75rem;">Lesiones Clave A:</label>
+                <input type="number" id="soccer-inj-a" name="injuries_a" value="0" min="0" max="5" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;">
+              </div>
+              <div class="form-group">
+                <label for="soccer-inj-b" style="font-size: 0.75rem;">Lesiones Clave B:</label>
+                <input type="number" id="soccer-inj-b" name="injuries_b" value="0" min="0" max="5" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label for="soccer-rest-a" style="font-size: 0.75rem;">Días Descanso A:</label>
+                <input type="number" id="soccer-rest-a" name="rest_days_a" value="5" min="3" max="12" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;">
+              </div>
+              <div class="form-group">
+                <label for="soccer-rest-b" style="font-size: 0.75rem;">Días Descanso B:</label>
+                <input type="number" id="soccer-rest-b" name="rest_days_b" value="5" min="3" max="12" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label for="soccer-temp" style="font-size: 0.75rem; margin-bottom: 0;">Temperatura: <strong id="soccer-temp-val">22</strong>°C</label>
+              </div>
+              <input type="range" id="soccer-temp" name="temperature" min="0" max="40" value="22" class="styled-slider" style="margin: 0.25rem 0; width: 100%;">
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label for="soccer-humidity" style="font-size: 0.75rem; margin-bottom: 0;">Humedad: <strong id="soccer-humidity-val">60</strong>%</label>
+              </div>
+              <input type="range" id="soccer-humidity" name="humidity" min="10" max="100" step="5" value="60" class="styled-slider" style="margin: 0.25rem 0; width: 100%;">
+            </div>
+
+          </div>
+        </details>
+        
+        <button type="submit" class="btn-submit" id="soccer-submit-btn" style="margin-top: 1rem;">Simular Partido</button>
+        </form>
+      </section>
+
+      <!-- Model Details Card -->
+      <section class="control-card">
+        <h2>2. Información del Modelo</h2>
+        <div class="details-content" style="padding: 0; font-size: 0.825rem; color: var(--text-secondary);">
+          <p style="margin-bottom: 0.75rem;">
+            El modelo calcula el **Poder de Ataque** y **Poder de Defensa** de cada equipo basándose en sus goles anotados y concedidos en los últimos 6 años frente a la dificultad de sus oponentes.
+          </p>
+          <p style="margin-bottom: 0.75rem;">
+            Mediante la **Distribución de Poisson**, simulamos las probabilidades de todos los marcadores posibles (desde 0-0 hasta 6-6) para obtener:
+          </p>
+          <ul style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.25rem;">
+            <li>Probabilidad de victoria de cada selección.</li>
+            <li>Goles esperados (xG).</li>
+            <li>El marcador exacto más probable.</li>
+          </ul>
+        </div>
+      </section>
+      
+    </aside>
+
+    <!-- Main Scorecard Area -->
+    <div class="main-display">
+      
+      <!-- Prediction Results Card -->
+      <section class="display-card soccer-display-card">
+        
+        <!-- Results panel (hidden initially) -->
+        <div class="soccer-dashboard" id="soccer-dashboard-result" style="display: none;">
+          
+          <!-- Large Scoreboard -->
+          <div class="scoreboard-wrapper">
+            <div class="team-score-block">
+              <div class="team-flag-dummy" id="flag-a">⚽</div>
+              <h3 id="result-team-a-name">Selección A</h3>
+              <span class="expected-goals" id="xg-team-a">xG: --</span>
+            </div>
+            
+            <div class="score-display">
+              <div class="score-numbers" id="most-likely-score">-- - --</div>
+              <div class="score-label">Marcador Más Probable</div>
+            </div>
+            
+            <div class="team-score-block">
+              <div class="team-flag-dummy" id="flag-b">⚽</div>
+              <h3 id="result-team-b-name">Selección B</h3>
+              <span class="expected-goals" id="xg-team-b">xG: --</span>
+            </div>
+          </div>
+          
+          <!-- Win / Draw / Loss Probabilities -->
+      <div class="probability-bars-section">
+        <h4>Probabilidades del Resultado Final</h4>
+        <div class="odds-visualizer">
+          <div class="odd-box" id="odd-win-a">
+            <span class="odd-label">Gana <strong id="label-win-a">Selección A</strong></span>
+            <div class="odd-bar"><div class="odd-fill" id="fill-win-a"></div></div>
+            <span class="odd-percentage" id="val-win-a">--%</span>
+          </div>
+          <div class="odd-box" id="odd-draw">
+            <span class="odd-label">Empate</span>
+            <div class="odd-bar"><div class="odd-fill" id="fill-draw"></div></div>
+            <span class="odd-percentage" id="val-draw">--%</span>
+          </div>
+          <div class="odd-box" id="odd-win-b">
+            <span class="odd-label">Gana <strong id="label-win-b">Selección B</strong></span>
+            <div class="odd-bar"><div class="odd-fill" id="fill-win-b"></div></div>
+            <span class="odd-percentage" id="val-win-b">--%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Uncertainty Density Chart Section -->
+      <div class="probability-bars-section" id="density-chart-section">
+        <h4 style="border-left-color: var(--color-forecast);">Distribución de Incertidumbre (Diferencia de Goles - XGBoost)</h4>
+        <div class="chart-container" style="position: relative; height: 230px; width: 100%; margin-top: 1rem;">
+          <canvas id="densityChart"></canvas>
+        </div>
+        <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.75rem; text-align: center; line-height: 1.4;">
+          El eje X representa el diferencial de goles (goles local - goles visitante). Valores positivos (<span style="color: var(--color-primary-hover);">Gana Local</span>) y negativos (<span style="color: var(--color-forecast);">Gana Visitante</span>). La curva muestra cómo se distribuye la incertidumbre matemática del partido.
+        </p>
+      </div>
+          
+          <!-- Scoreboard Details Grid -->
+          <div class="predictions-tables-grid">
+            
+            <!-- Top Scorelines -->
+            <div class="table-box">
+              <h4>Top 5 Marcadores más Probables</h4>
+              <table class="soccer-table">
+                <thead>
+                  <tr>
+                    <th>Marcador</th>
+                    <th>Probabilidad</th>
+                  </tr>
+                </thead>
+                <tbody id="scorelines-table-body">
+                  <!-- JS inserts rows here -->
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- Attack / Defense Strengths -->
+            <div class="table-box">
+              <h4>Fortalezas Relativas (Histórico 6 Años)</h4>
+              
+              <div class="stat-progress-bar">
+                <span class="stat-name">Poder de Ataque (Mayor es Mejor)</span>
+                <div class="double-bar">
+                  <div class="bar-left" id="attack-strength-a"></div>
+                  <div class="bar-right" id="attack-strength-b"></div>
+                </div>
+                <div class="stat-values">
+                  <span id="att-val-a">--</span>
+                  <span id="att-val-b">--</span>
+                </div>
+              </div>
+              
+              <div class="stat-progress-bar" style="margin-top: 1.5rem;">
+                <span class="stat-name">Debilidad Defensiva (Menor es Mejor)</span>
+                <div class="double-bar">
+                  <div class="bar-left def-bar" id="defense-strength-a"></div>
+                  <div class="bar-right def-bar" id="defense-strength-b"></div>
+                </div>
+                <div class="stat-values">
+                  <span id="def-val-a">--</span>
+                  <span id="def-val-b">--</span>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+          
+          <!-- History Head to Head -->
+          <div class="h2h-section">
+            <h4>Historial Reciente Cara a Cara (Últimos 5 Partidos)</h4>
+            <table class="soccer-table h2h-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Local</th>
+                  <th>Resultado</th>
+                  <th>Visitante</th>
+                  <th>Torneo</th>
+                </tr>
+              </thead>
+              <tbody id="h2h-table-body">
+                <!-- JS inserts rows here -->
+              </tbody>
+            </table>
+          </div>
+          
+        </div>
+        
+        <!-- Placeholder overlay -->
+        <div class="placeholder-overlay" id="soccer-placeholder">
+          <svg viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a10 10 0 0 1 0 20"></path>
+            <path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path>
+          </svg>
+          <p>Selecciona dos selecciones nacionales en la izquierda y haz clic en <strong>Simular Partido</strong></p>
+        </div>
+        
+        <!-- Loading spinner -->
+        <div class="loading-overlay" id="soccer-loading">
+          <div class="spinner"></div>
+          <p id="loading-text" style="font-weight: 500; font-size: 0.95rem; margin-top: 1rem; color: var(--text-primary);">El modelo está preparando la simulación...</p>
+          <div class="progress-bar-container" style="width: 250px; height: 6px; background: hsla(0, 0%, 100%, 0.08); border-radius: 10px; overflow: hidden; margin-top: 0.75rem; border: 1px solid var(--border-color);">
+            <div id="simulation-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--color-primary), var(--color-forecast)); transition: width 0.1s ease; box-shadow: 0 0 10px var(--color-primary-glow);"></div>
+          </div>
+        </div>
+        
+      </section>
+      
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <p>Predictor de Partidos de Fútbol | Basado en el conjunto de datos de fútbol internacional desde 1872</p>
+  </footer>
+
+  <!-- Notification toast container -->
+  <div class="toast-container" id="toast-container" aria-live="assertive"></div>
+
+  <!-- Custom JS -->
+  <script src="soccer.js"></script>
+</body>
+</html>

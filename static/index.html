@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Comparador interactivo de consumo de combustible (Extra vs Súper) en Ecuador por tipo de vehículo y ciudad (Quito, Guayaquil, Cuenca, Loja) con datos reales y análisis econométrico.">
+  <title>Comparador de Combustible Ecuador | Econometría</title>
+  
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="combustible.css?v=1.2">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-logo">
+      <div class="logo-icon">🚗</div>
+      <div class="logo-text">
+        <h1>Combustible <span>Ecuador</span></h1>
+        <p class="subtitle">Análisis de Consumo, Costos y Subsidios</p>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="header-nav">
+      <a href="/" class="nav-link active-link">🚗 Comparador de Gasolina</a>
+      <a href="/timesfm.html" class="nav-link">📈 Pronosticador TimesFM</a>
+      <a href="/soccer.html" class="nav-link">🏆 Mundial de Fútbol</a>
+    </nav>
+    
+    <!-- Ecuador Flag Ribbon -->
+    <div class="ecuador-ribbon">
+      <div class="ribbon-yellow"></div>
+      <div class="ribbon-blue"></div>
+      <div class="ribbon-red"></div>
+    </div>
+  </header>
+
+  <main class="app-layout">
+    
+    <!-- Sidebar Controls -->
+    <aside class="sidebar-panel">
+      
+      <!-- Card: Precios de Combustible -->
+      <section class="control-card">
+        <h2>1. Precios de Venta (por Galón)</h2>
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="price-extra">Gasolina Extra / Ecopaís:</label>
+            <div class="input-prefix-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="number" id="price-extra" value="3.312" step="0.001" min="1.0" required>
+            </div>
+            <span class="help-text">Precio Fijo (Junio 2026)</span>
+          </div>
+          <div class="form-group flex-1">
+            <label for="price-super">Gasolina Súper Premium:</label>
+            <div class="input-prefix-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="number" id="price-super" value="5.70" step="0.01" min="2.0" required>
+            </div>
+            <span class="help-text">Sugerido Referencial</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Card: Uso del Vehículo -->
+      <section class="control-card">
+        <h2>2. Kilometraje Mensual</h2>
+        <div class="form-group">
+          <div class="slider-header">
+            <label for="monthly-distance">Distancia estimada a recorrer:</label>
+            <span class="slider-value"><strong id="distance-val">1200</strong> km/mes</span>
+          </div>
+          <input type="range" id="monthly-distance" min="100" max="5000" step="50" value="1200" class="styled-slider">
+          <div class="slider-labels">
+            <span>100 km</span>
+            <span>2500 km</span>
+            <span>5000 km</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Card: Selección de Vehículo -->
+      <section class="control-card">
+        <h2>3. Tipo de Vehículo</h2>
+        <div class="vehicle-grid" role="radiogroup" aria-label="Selecciona tipo de vehículo">
+          
+          <button type="button" class="vehicle-btn active" data-vehicle="moto" aria-checked="true">
+            <span class="vehicle-icon">🏍️</span>
+            <span class="vehicle-title">Motocicleta</span>
+            <span class="vehicle-desc">Ej: Shineray 150cc</span>
+          </button>
+          
+          <button type="button" class="vehicle-btn" data-vehicle="sedan" aria-checked="false">
+            <span class="vehicle-icon">🚗</span>
+            <span class="vehicle-title">Sedán Compacto</span>
+            <span class="vehicle-desc">Ej: Chevrolet Sail 1.5</span>
+          </button>
+          
+          <button type="button" class="vehicle-btn" data-vehicle="suv" aria-checked="false">
+            <span class="vehicle-icon">🚙</span>
+            <span class="vehicle-title">SUV Mediano</span>
+            <span class="vehicle-desc">Ej: Kia Sportage 2.0</span>
+          </button>
+          
+          <button type="button" class="vehicle-btn" data-vehicle="pickup" aria-checked="false">
+            <span class="vehicle-icon">🛻</span>
+            <span class="vehicle-title">Camioneta / Pickup</span>
+            <span class="vehicle-desc">Ej: Chevrolet D-Max 2.4</span>
+          </button>
+          
+        </div>
+
+        <!-- Real-world models selector -->
+        <div class="model-select-divider">O selecciona un modelo real homologado:</div>
+        
+        <div class="form-group" style="margin-bottom: 0.5rem;">
+          <label for="vehicle-brand">Marca del Vehículo:</label>
+          <div class="input-prefix-wrapper">
+            <select id="vehicle-brand" name="vehicle_brand" class="styled-select">
+              <option value="generic">-- Usar Categoría Genérica --</option>
+              <option value="chevrolet" selected>Chevrolet</option>
+              <option value="hyundai">Hyundai</option>
+              <option value="kia">Kia</option>
+              <option value="mazda">Mazda</option>
+              <option value="shineray">Shineray / Motos</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-bottom: 0.5rem;">
+          <div class="form-group flex-1">
+            <label for="vehicle-model">Modelo de Vehículo:</label>
+            <div class="input-prefix-wrapper">
+              <select id="vehicle-model" name="vehicle_model" class="styled-select">
+                <option value="sail">Chevrolet Sail 1.5L</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group" style="width: 105px;">
+            <label for="vehicle-year">Año Modelo:</label>
+            <div class="input-prefix-wrapper">
+              <select id="vehicle-year" name="vehicle_year" class="styled-select">
+                <option value="2024">2024</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapsible: Advanced Config -->
+        <details class="advanced-details">
+          <summary>Ajustes Técnicos del Vehículo Seleccionado</summary>
+          <div class="advanced-grid">
+            <div class="form-group">
+              <label for="custom-tank">Capacidad del Tanque:</label>
+              <div class="input-suffix-wrapper">
+                <input type="number" id="custom-tank" value="3.2" step="0.1" min="1">
+                <span class="input-suffix">Galones</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="custom-consumption">Rendimiento Base (Plano/Costa):</label>
+              <div class="input-suffix-wrapper">
+                <input type="number" id="custom-consumption" value="110" step="1" min="5">
+                <span class="input-suffix">km/Galón</span>
+              </div>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- Card: Selección de Ciudad -->
+      <section class="control-card">
+        <h2>4. Ciudad de Circulación</h2>
+        <div class="city-selector" role="radiogroup" aria-label="Selecciona la ciudad">
+          
+          <button type="button" class="city-btn active" data-city="quito" aria-checked="true">
+            <div class="city-header-row">
+              <span class="city-name">Quito</span>
+              <span class="city-factor">-15% Eficiencia</span>
+            </div>
+            <span class="city-details">Altitud: 2,850 msnm | Tránsito denso y pendientes | Recorrido medio: 1,200 km/mes</span>
+          </button>
+          
+          <button type="button" class="city-btn" data-city="guayaquil" aria-checked="false">
+            <div class="city-header-row">
+              <span class="city-name">Guayaquil</span>
+              <span class="city-factor">-10% Eficiencia</span>
+            </div>
+            <span class="city-details">Altitud: 4 msnm | Uso continuo de A/C | Recorrido medio: 1,100 km/mes</span>
+          </button>
+          
+          <button type="button" class="city-btn" data-city="cuenca" aria-checked="false">
+            <div class="city-header-row">
+              <span class="city-name">Cuenca</span>
+              <span class="city-factor">-10% Eficiencia</span>
+            </div>
+            <span class="city-details">Altitud: 2,560 msnm | Relieve montañoso Sierra | Recorrido medio: 900 km/mes</span>
+          </button>
+          
+          <button type="button" class="city-btn" data-city="loja" aria-checked="false">
+            <div class="city-header-row">
+              <span class="city-name">Loja</span>
+              <span class="city-factor">-12% Eficiencia</span>
+            </div>
+            <span class="city-details">Altitud: 2,060 msnm | Calles estrechas y paradas continuas | Recorrido medio: 800 km/mes</span>
+          </button>
+          
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- Main Dashboard Area -->
+    <div class="dashboard-panel">
+      
+      <!-- Metrics Grid -->
+      <section class="metrics-grid" aria-label="Métricas de costo y consumo">
+        
+        <!-- Metric: Cost to Fill Tank -->
+        <div class="metric-card">
+          <span class="metric-label">Costo por Tanque Lleno</span>
+          <div class="metric-comparison">
+            <div class="metric-val extra-glow">
+              <span class="fuel-type">Extra</span>
+              <span class="val-num" id="cost-fill-extra">$0.00</span>
+            </div>
+            <div class="metric-divider"></div>
+            <div class="metric-val super-glow">
+              <span class="fuel-type">Súper</span>
+              <span class="val-num" id="cost-fill-super">$0.00</span>
+            </div>
+          </div>
+          <div class="metric-footer">
+            Diferencia de <strong id="diff-fill-abs">$0.00</strong> por tanque (<span id="diff-fill-pct">0%</span> más barato con Extra)
+          </div>
+        </div>
+
+        <!-- Metric: Monthly Fuel Cost -->
+        <div class="metric-card">
+          <span class="metric-label">Costo Operativo Mensual (<span id="selected-dist-label">1200</span> km)</span>
+          <div class="metric-comparison">
+            <div class="metric-val extra-glow">
+              <span class="fuel-type">Extra</span>
+              <span class="val-num" id="cost-month-extra">$0.00</span>
+            </div>
+            <div class="metric-divider"></div>
+            <div class="metric-val super-glow">
+              <span class="fuel-type">Súper</span>
+              <span class="val-num" id="cost-month-super">$0.00</span>
+            </div>
+          </div>
+          <div class="metric-footer highlight-green">
+            Ahorras <strong id="monthly-savings">$0.00</strong> mensuales usando gasolina Extra
+          </div>
+        </div>
+
+        <!-- Metric: Autonomy and Fuel Usage -->
+        <div class="metric-card">
+          <span class="metric-label">Rendimiento Real en <span id="selected-city-name">Quito</span></span>
+          <div class="metric-details-list">
+            <div class="detail-row">
+              <span>Consumo Homologado:</span>
+              <strong id="homologated-economy">0.0 km/gal</strong>
+            </div>
+            <div class="detail-row">
+              <span>Consumo Real Estimado:</span>
+              <strong id="adjusted-economy">0.0 km/gal</strong>
+            </div>
+            <div class="detail-row">
+              <span>Autonomía por Tanque:</span>
+              <strong id="autonomy-range">0 km</strong>
+            </div>
+            <div class="detail-row">
+              <span>Recargas al Mes (est.):</span>
+              <strong id="refills-per-month">0.0 veces</strong>
+            </div>
+            <div class="detail-row">
+              <span>Consumo por 100 km:</span>
+              <strong id="gal-per-100">0.0 galones</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metric: Subsidy Received -->
+        <div class="metric-card">
+          <span class="metric-label">Subsidio Estatal Recibido (Extra)</span>
+          <div class="subsidy-box">
+            <div class="subsidy-header">
+              <span class="subsidy-title">Aporte del Estado Ecuatoriano</span>
+              <strong class="subsidy-badge" id="subsidy-monthly">$0.00 / mes</strong>
+            </div>
+            <p class="subsidy-text">
+              Basado en un precio internacional estimado sin subsidio de <strong>$4.20 por galón</strong>. Este valor es absorbido por el Estado para mantener congelado el precio de la Extra.
+            </p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Charts Tab Container -->
+      <section class="charts-section">
+        <div class="charts-header">
+          <h2>Análisis Gráfico</h2>
+          <div class="chart-tabs">
+            <button class="chart-tab-btn active" data-chart="monthly">Costo Mensual</button>
+            <button class="chart-tab-btn" data-chart="cities">Comparación de Ciudades</button>
+            <button class="chart-tab-btn" data-chart="tank">Costo de Llenado</button>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <!-- Canvas elements for Chart.js -->
+          <canvas id="monthlyChart"></canvas>
+          <canvas id="citiesChart" class="hidden"></canvas>
+          <canvas id="tankChart" class="hidden"></canvas>
+        </div>
+      </section>
+
+      <!-- Econometrics & Technical Explanation Panel -->
+      <section class="econometric-panel">
+        <h2>Análisis Económico y Técnico (Física y Política del Combustible)</h2>
+        
+        <div class="accordion-grid">
+          
+          <div class="info-box">
+            <h3>📈 Econometría del Subsidio en Ecuador</h3>
+            <p>
+              El subsidio a los combustibles en Ecuador es una medida de fuerte impacto fiscal y social. Las gasolinas <strong>Extra</strong> y <strong>Ecopaís</strong> reciben un subsidio parcial que amortigua la volatilidad de los precios mundiales del petróleo (WTI). 
+            </p>
+            <p>
+              Mientras que la gasolina <strong>Súper Premium 95</strong> tiene un precio totalmente liberado que responde directamente a las cotizaciones de importación más márgenes de ganancia de las comercializadoras, el Estado subvenciona aproximadamente un 20-30% del costo real de la gasolina Extra. Para un conductor promedio que recorre 1,200 km al mes en un automóvil compacto, esto representa una transferencia indirecta del Estado de decenas de dólares mensuales, reduciendo los costos de movilidad a expensas de la balanza de pagos estatal.
+            </p>
+          </div>
+          
+          <div class="info-box">
+            <h3>⚙️ Octanaje vs. Relación de Compresión del Motor</h3>
+            <p>
+              Existe el mito urbano de que usar gasolina Súper aumenta la potencia de cualquier automóvil o que "limpia el motor". Físicamente, el octanaje (85 octanos para la Extra y 95 para la Súper Premium) mide la <strong>capacidad antidetonante</strong> del combustible, es decir, cuánto se puede comprimir la mezcla aire-gasolina antes de autoencenderse.
+            </p>
+            <ul>
+              <li><strong>Motores de Alta Compresión (o Turbocargados):</strong> Típicamente con relaciones mayores a 10:1. Requieren gasolina de alto octanaje (Súper) para evitar la detonación prematura (el famoso <i>cascabeleo</i> o <i>knocking</i>), lo cual puede destruir los pistones y disminuye radicalmente la eficiencia térmica.</li>
+              <li><strong>Motores Atmosféricos de Baja Compresión:</strong> Típicamente menores a 10:1 (ej. Chevrolet Sail). Su cámara no alcanza las presiones para requerir 95 octanos. Pagar por Súper en estos vehículos es un gasto redundante, ya que la computadora regulará la inyección de la misma forma y la ganancia de rendimiento es nula.</li>
+            </ul>
+          </div>
+          
+          <div class="info-box">
+            <h3>🏔️ Factores Geográficos: Altitud vs. Clima en el Ecuador</h3>
+            <p>
+              El consumo promedio real en ciudades del Ecuador varía debido a factores físicos claros:
+            </p>
+            <ul>
+              <li><strong>El Fenómeno de Altitud (Sierra - Quito, Cuenca, Loja):</strong> A 2,850 metros de altitud en Quito, la densidad del oxígeno es un 25% menor que a nivel del mar. En motores de aspiración natural (sin turbo), esto reduce la potencia del motor. Para compensar y mantener la velocidad en pendientes pronunciadas, los conductores presionan más el acelerador (mayor apertura de mariposa), aumentando el consumo. Además, la topografía exige marchas bajas constantes (primera y segunda velocidad), donde el motor opera en rangos de baja eficiencia (km por galón reducidos).</li>
+              <li><strong>El Clima y la Carga Auxiliar (Costa - Guayaquil):</strong> Aunque a nivel del mar el motor respira mejor (mezcla estequiométrica ideal con 100% de potencia nominal), las temperaturas promedio de Guayaquil exigen el funcionamiento continuo del compresor del Aire Acondicionado. El A/C representa una carga mecánica parásita directa sobre el motor que puede reducir la eficiencia total entre un 10% y un 15%, especialmente en tráfico congestionado de ralentí prolongado.</li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>Comparador de Combustibles Ecuador v1.0 | Desarrollado para fines académicos e investigativos - Econometría</p>
+  </footer>
+
+  <!-- Link custom JavaScript -->
+  <script src="combustible.js?v=1.2"></script>
+</body>
+</html>
